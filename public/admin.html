@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Porchlight — admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#ECECDF; --ink:#23291F; --ink-soft:#5B6153; --line:#D3CFBC; --card-bg:#F5F3E8; --danger:#9C4A3B; --teal:#35594C; }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#1B1D16; --ink:#ECE8DA; --ink-soft:#B7B29C; --line:#34362A; --card-bg:#21231A; --danger:#D97F6C; --teal:#6FA08E; }
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:"Libre Franklin",sans-serif; }
+  .wrap{ max-width:760px; margin:0 auto; padding:28px 18px 80px; }
+  h1{ font-family:"Fraunces",serif; font-weight:500; font-size:26px; margin:0 0 6px; }
+  p.sub{ color:var(--ink-soft); font-size:14px; margin:0 0 24px; }
+  .report{ background:var(--card-bg); border:1px solid var(--line); border-radius:4px; padding:16px; margin-bottom:14px; }
+  .report-top{ display:flex; justify-content:space-between; gap:10px; font-size:13px; color:var(--ink-soft); margin-bottom:8px; }
+  .report-reason{ font-size:14.5px; margin-bottom:10px; white-space:pre-wrap; }
+  .report-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+  button{ font-family:inherit; font-size:13px; font-weight:600; border-radius:3px; padding:8px 12px; cursor:pointer; border:1px solid var(--line); background:transparent; color:var(--ink); }
+  button.danger{ background:var(--danger); color:#fff; border-color:var(--danger); }
+  button.primary{ background:var(--teal); color:#fff; border-color:var(--teal); }
+  .empty{ color:var(--ink-soft); font-size:14px; }
+  .status{ font-size:12px; padding:2px 8px; border-radius:10px; border:1px solid var(--line); }
+  .banned-tag{ color:var(--danger); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Reports</h1>
+  <p class="sub">Only visible to the board's admin. The first account ever created on this install is the admin.</p>
+  <div id="content"><p class="empty">Loading…</p></div>
+</div>
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  function load(){
+    fetch("/api/admin/reports", {credentials:"same-origin"}).then(function(r){
+      if(r.status === 401){ $("content").innerHTML = '<p class="empty">Log in at the main page first, then come back here.</p>'; return null; }
+      if(r.status === 403){ $("content").innerHTML = '<p class="empty">This account isn\'t the admin.</p>'; return null; }
+      return r.json();
+    }).then(function(reports){
+      if(!reports) return;
+      render(reports);
+    }).catch(function(){ $("content").innerHTML = '<p class="empty">Couldn\'t load reports.</p>'; });
+  }
+
+  function render(reports){
+    var host = $("content");
+    if(reports.length === 0){ host.innerHTML = '<p class="empty">No reports yet.</p>'; return; }
+    host.innerHTML = "";
+    reports.forEach(function(r){
+      var div = document.createElement("div");
+      div.className = "report";
+      div.innerHTML =
+        '<div class="report-top"><span>Reported: <b>' + escapeHtml(r.reportedUserName) + '</b> (' + escapeHtml(r.reportedUserEmail) + ')' +
+        (r.reportedUserBanned ? ' <span class="banned-tag">· banned</span>' : '') + '</span>' +
+        '<span class="status">' + escapeHtml(r.status) + '</span></div>' +
+        '<div class="report-top"><span>From: ' + escapeHtml(r.reporterName) + '</span><span>' + new Date(r.createdAt).toLocaleString() + '</span></div>' +
+        '<div class="report-reason">' + escapeHtml(r.reason) + '</div>';
+      var actions = document.createElement("div");
+      actions.className = "report-actions";
+
+      if(!r.reportedUserBanned){
+        var banBtn = document.createElement("button");
+        banBtn.className = "danger"; banBtn.textContent = "Ban this person";
+        banBtn.addEventListener("click", function(){
+          banBtn.disabled = true;
+          fetch("/api/admin/ban/" + r.reportedUserId, {method:"POST", credentials:"same-origin"}).then(load);
+        });
+        actions.appendChild(banBtn);
+      } else {
+        var unbanBtn = document.createElement("button");
+        unbanBtn.textContent = "Unban this person";
+        unbanBtn.addEventListener("click", function(){
+          unbanBtn.disabled = true;
+          fetch("/api/admin/unban/" + r.reportedUserId, {method:"POST", credentials:"same-origin"}).then(load);
+        });
+        actions.appendChild(unbanBtn);
+      }
+
+      if(r.status !== "resolved"){
+        var resolveBtn = document.createElement("button");
+        resolveBtn.className = "primary"; resolveBtn.textContent = "Mark resolved";
+        resolveBtn.addEventListener("click", function(){
+          resolveBtn.disabled = true;
+          fetch("/api/admin/reports/" + r.id + "/resolve", {method:"POST", credentials:"same-origin"}).then(load);
+        });
+        actions.appendChild(resolveBtn);
+      }
+
+      div.appendChild(actions);
+      host.appendChild(div);
+    });
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>

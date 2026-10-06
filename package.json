@@ -1,0 +1,18 @@
+{
+  "name": "porchlight",
+  "version": "2.0.0",
+  "private": true,
+  "description": "A neighbor time bank with real accounts, email verification, and trust & safety tools.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.17.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "cookie-parser": "^1.4.6",
+    "resend": "^3.5.0"
+  }
+}

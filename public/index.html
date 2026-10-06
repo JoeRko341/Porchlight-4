@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Porchlight — a time bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --bg: #ECECDF; --bg-row-alt: #E4E1D1; --ink: #23291F; --ink-soft: #5B6153;
+    --line: #D3CFBC; --amber: #B77A22; --amber-soft: #EBD8B8; --teal: #35594C;
+    --teal-soft: #D3E0DA; --green-dot: #5B7A4E; --blue-dot: #5C7A8A; --gray-dot: #8B8677;
+    --card-bg: #F5F3E8; --focus: #35594C; --danger: #9C4A3B;
+  }
+  html{ scroll-padding-top: env(safe-area-inset-top, 0px); }
+  html, body{ height:100%; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #1B1D16; --bg-row-alt: #232519; --ink: #ECE8DA; --ink-soft: #B7B29C;
+      --line: #34362A; --amber: #E0A94A; --amber-soft: #3B321F; --teal: #6FA08E;
+      --teal-soft: #223028; --green-dot: #86AC72; --blue-dot: #86AEC0; --gray-dot: #93907E;
+      --card-bg: #21231A; --focus: #6FA08E; --danger: #D97F6C;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #1B1D16; --bg-row-alt: #232519; --ink: #ECE8DA; --ink-soft: #B7B29C;
+    --line: #34362A; --amber: #E0A94A; --amber-soft: #3B321F; --teal: #6FA08E;
+    --teal-soft: #223028; --green-dot: #86AC72; --blue-dot: #86AEC0; --gray-dot: #93907E;
+    --card-bg: #21231A; --focus: #6FA08E; --danger: #D97F6C;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:"Libre Franklin", -apple-system, "Segoe UI", sans-serif; line-height:1.45; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3, .display{ font-family:"Fraunces", Georgia, serif; font-weight:500; letter-spacing:-0.01em; margin:0; }
+  a{ color:inherit; }
+  button, input, textarea, select{ font-family:inherit; font-size:inherit; color:inherit; }
+  button{ cursor:pointer; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; } }
+
+  .wrap{ max-width:880px; margin:0 auto; padding:24px 18px 80px; }
+
+  header.top{ display:flex; justify-content:space-between; align-items:flex-start; gap:20px; padding-bottom:20px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  .brand-mark{ display:flex; flex-direction:column; gap:4px; max-width:46ch; }
+  .brand-mark .name-row{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .brand-mark h1{ font-size:30px; font-style:italic; }
+  .brand-tag{ color:var(--ink-soft); font-size:14px; }
+  .me-box{ display:flex; align-items:center; gap:12px; }
+  .me-box img{ width:34px; height:34px; border-radius:50%; border:1px solid var(--line); flex-shrink:0; }
+  .balance-num{ font-family:"Fraunces", serif; font-size:24px; line-height:1; }
+  .balance-label{ font-size:12px; color:var(--ink-soft); }
+  .me-menu{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+  .me-links{ display:flex; gap:10px; margin-top:2px; }
+  .me-links a, .me-links button{ font-size:11.5px; color:var(--ink-soft); text-decoration:underline; text-underline-offset:2px; background:none; border:none; padding:0; }
+  .howitworks-toggle{ font-size:13px; color:var(--ink-soft); text-decoration:underline; text-underline-offset:3px; background:none; border:none; padding:0; margin-top:2px; align-self:flex-start; }
+  .howitworks-body{ display:none; font-size:13.5px; color:var(--ink-soft); margin-top:8px; max-width:60ch; }
+  .howitworks-body.open{ display:block; }
+  .howitworks-body ol{ margin:6px 0 0; padding-left:18px; }
+  .howitworks-body li{ margin-bottom:5px; }
+
+  .stats{ display:flex; gap:22px; flex-wrap:wrap; margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid var(--line); }
+  .stat b{ font-family:"Fraunces", serif; font-size:18px; font-weight:500; display:block; }
+  .stat span{ font-size:12px; color:var(--ink-soft); }
+
+  .my-summary{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:var(--card-bg); border:1px solid var(--line); border-radius:4px; padding:12px 16px; margin-bottom:18px; font-size:13.5px; }
+  .my-summary strong{ font-weight:600; }
+  .my-summary .link-btn{ white-space:nowrap; }
+
+  .actions-row{ display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+  .btn{ border:1px solid transparent; border-radius:3px; padding:11px 16px; font-size:14.5px; font-weight:600; display:inline-flex; align-items:center; gap:8px; min-height:40px; }
+  .btn-need{ background:var(--amber); color:#2B1D08; }
+  .btn-offer{ background:var(--teal); color:#F4F4EC; }
+  .btn-ghost{ background:transparent; border-color:var(--line); color:var(--ink); }
+  .btn-small{ padding:8px 12px; font-size:13px; border-radius:3px; min-height:36px; }
+  .btn:disabled{ opacity:0.5; cursor:default; }
+  .link-btn{ background:none; border:none; padding:6px 2px; color:var(--teal); font-weight:600; font-size:13.5px; text-decoration:underline; text-underline-offset:3px; }
+  .link-btn.danger{ color:var(--danger); }
+  .link-btn.quiet{ color:var(--ink-soft); font-weight:500; }
+
+  .filters{ display:flex; gap:8px; align-items:center; margin-bottom:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; }
+  .pill{ border:1px solid var(--line); background:transparent; color:var(--ink-soft); border-radius:20px; padding:7px 14px; font-size:13px; font-weight:500; white-space:nowrap; flex-shrink:0; }
+  .pill.active{ background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .cat-select{ border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:20px; padding:7px 12px; font-size:13px; flex-shrink:0; }
+
+  section.board-section{ margin-top:28px; }
+  .section-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:6px; }
+  .section-head h2{ font-size:17px; }
+  .section-sub{ font-size:12.5px; color:var(--ink-soft); }
+  .section-empty{ color:var(--ink-soft); font-size:14px; padding:16px 0; }
+
+  .row{ display:flex; gap:14px; padding:15px 4px 15px 14px; border-bottom:1px solid var(--line); border-left:3px solid var(--line); }
+  .row.need{ border-left-color:var(--amber); }
+  .row.offer{ border-left-color:var(--teal); }
+  .row-main{ flex:1; min-width:0; }
+  .row-top{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:3px; }
+  .type-label{ font-size:12.5px; font-weight:700; }
+  .type-label.need{ color:var(--amber); }
+  .type-label.offer{ color:var(--teal); }
+  .cat-label{ font-size:12.5px; color:var(--ink-soft); }
+  .role-tag{ font-size:11.5px; color:var(--ink-soft); border:1px solid var(--line); border-radius:10px; padding:1px 8px; }
+  .row-title{ font-size:16px; font-weight:600; margin:2px 0 3px; }
+  .row-desc{ font-size:14px; color:var(--ink-soft); margin:0 0 6px; white-space:pre-wrap; }
+  .row-meta{ font-size:12.5px; color:var(--ink-soft); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .dot{ width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:5px; }
+  .dot.open{ background:var(--green-dot); }
+  .dot.matched{ background:var(--blue-dot); }
+  .dot.completed{ background:var(--gray-dot); }
+  .row-actions{ display:flex; flex-direction:column; gap:8px; align-items:flex-end; justify-content:center; min-width:118px; }
+  .row.cancelled .row-title, .row.cancelled .row-desc{ text-decoration:line-through; opacity:0.55; }
+  .row-safety{ display:flex; gap:10px; margin-top:6px; }
+  .row-safety button{ font-size:11.5px; }
+
+  .inline-form{ margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+  .inline-form input[type=text]{ border:1px solid var(--line); background:var(--card-bg); border-radius:3px; padding:8px 9px; font-size:13.5px; flex:1; min-width:140px; }
+  .inline-form input[type=number]{ border:1px solid var(--line); background:var(--card-bg); border-radius:3px; padding:8px 9px; font-size:13.5px; width:80px; }
+
+  .activity-item{ font-size:14px; padding:9px 0; border-bottom:1px solid var(--line); color:var(--ink-soft); }
+  .activity-item b{ color:var(--ink); font-weight:600; }
+
+  .panel{ background:var(--card-bg); border:1px solid var(--line); border-radius:4px; padding:18px; margin-bottom:22px; }
+  .panel h3{ font-size:17px; margin-bottom:14px; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:13px; color:var(--ink-soft); margin-bottom:5px; font-weight:600; }
+  .field input[type=text], .field input[type=email], .field input[type=password], .field textarea, .field select{ width:100%; border:1px solid var(--line); background:var(--bg); border-radius:3px; padding:10px 11px; font-size:15px; }
+  .field textarea{ min-height:70px; resize:vertical; }
+  .field-hint{ font-size:12px; color:var(--ink-soft); margin-top:4px; }
+  .panel-actions{ display:flex; gap:10px; margin-top:6px; flex-wrap:wrap; }
+  .form-error{ background:var(--amber-soft); border:1px solid var(--line); border-radius:4px; padding:10px 12px; font-size:13px; margin-bottom:14px; }
+
+  footer.foot{ margin-top:46px; padding-top:16px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  footer.foot a{ text-decoration:underline; text-underline-offset:2px; }
+
+  .overlay{ position:fixed; inset:0; background:rgba(20,20,15,0.55); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; overflow-y:auto; }
+  .overlay-box{ background:var(--card-bg); border:1px solid var(--line); border-radius:6px; padding:26px; max-width:380px; width:100%; }
+  .overlay-box h3{ font-size:19px; margin-bottom:10px; }
+  .overlay-copy{ font-size:13.5px; color:var(--ink-soft); margin:0 0 16px; }
+  .auth-tabs{ display:flex; gap:6px; margin-bottom:18px; }
+  .auth-tab{ flex:1; padding:8px; border:1px solid var(--line); background:transparent; color:var(--ink-soft); font-size:13.5px; font-weight:600; border-radius:3px; }
+  .auth-tab.active{ background:var(--ink); color:var(--bg); border-color:var(--ink); }
+
+  @media (max-width:600px){
+    .wrap{ padding:18px 14px 70px; }
+    .row{ flex-direction:column; gap:10px; padding:14px 4px 14px 12px; }
+    .row-actions{ align-items:stretch; flex-direction:row; min-width:0; width:100%; flex-wrap:wrap; }
+    .row-actions .btn, .row-actions .link-btn{ flex:1; justify-content:center; }
+    header.top{ flex-direction:column; align-items:stretch; }
+    .me-box{ justify-content:space-between; }
+    .me-menu{ align-items:flex-start; }
+    .actions-row .btn{ flex:1; justify-content:center; }
+    .panel-actions .btn{ flex:1; justify-content:center; }
+    .inline-form input[type=text]{ min-width:0; width:100%; }
+    .my-summary{ flex-direction:column; align-items:flex-start; }
+    .cat-select{ width:100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand-mark">
+      <div class="name-row"><h1>Porchlight</h1></div>
+      <span class="brand-tag">A time bank for neighbors — trade help, not money. Post what you need or what you can offer, and log the hours as you go.</span>
+      <button class="howitworks-toggle" id="howBtn" aria-expanded="false">How this works</button>
+      <div class="howitworks-body" id="howBody">
+        <ol>
+          <li>Post a need ("could use a ride Tuesday") or an offer ("happy to help with tech setup").</li>
+          <li>Someone nearby responds, you agree on a time.</li>
+          <li>After you meet, whoever helped logs the hours — that's a credit they can spend later, asking someone else for help.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="me-box" id="meBox" style="display:none;">
+      <img id="meAvatar" src="" alt="" />
+      <div class="me-menu">
+        <div>
+          <div class="balance-num" id="balanceNum">–</div>
+          <div class="balance-label">your hours banked</div>
+        </div>
+        <div class="me-links">
+          <a href="/admin.html" id="adminLink" style="display:none;">Admin</a>
+          <button id="logoutBtn">Log out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div id="appBody" style="display:none;">
+    <div class="stats" id="statsRow"></div>
+    <div class="my-summary" id="mySummary" style="display:none;"></div>
+
+    <div class="actions-row" id="postButtons">
+      <button class="btn btn-need" id="openNeedForm">+ Post a need</button>
+      <button class="btn btn-offer" id="openOfferForm">+ Post an offer</button>
+    </div>
+
+    <div id="formPanelHost"></div>
+
+    <div class="filters" id="filterRow">
+      <button class="pill active" data-filter-type="all">All</button>
+      <button class="pill" data-filter-type="need">Needs</button>
+      <button class="pill" data-filter-type="offer">Offers</button>
+      <button class="pill" data-filter-type="mine">Mine</button>
+      <select class="cat-select" id="categorySelect"><option value="all">Every category</option></select>
+    </div>
+
+    <section class="board-section">
+      <div class="section-head"><h2 id="openHeading">Open now</h2></div>
+      <div id="openList"></div>
+    </section>
+
+    <section class="board-section" id="progressSection">
+      <div class="section-head"><h2 id="progressHeading">In progress</h2></div>
+      <div id="progressList"></div>
+    </section>
+
+    <section class="board-section" id="activitySection">
+      <div class="section-head"><h2>Recently completed</h2></div>
+      <div id="activityList"></div>
+    </section>
+
+    <section class="board-section" id="historySection" style="display:none;">
+      <div class="section-head"><h2>Your history</h2><span class="section-sub" id="historySub"></span></div>
+      <div id="historyList"></div>
+    </section>
+
+    <section class="board-section" id="blockedSection" style="display:none;">
+      <div class="section-head"><h2>People you've blocked</h2></div>
+      <div id="blockedList"></div>
+    </section>
+  </div>
+
+  <footer class="foot">
+    <span>Porchlight is running from your own server — accounts are verified by email, and you can block or report anyone.</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CATEGORIES = ["Rides & errands","Childcare respite","Home & garden","Tech help","Tutoring & skills","Companionship","Other"];
+
+  var state = {
+    myId: null, myName: "", myEmail: "", isAdmin: false,
+    posts: [], names: {}, blockedIds: [],
+    filterType: "all", filterCategory: "all", formOpenType: null
+  };
+
+  function $(id){ return document.getElementById(id); }
+  function el(tag, attrs, children){
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function(k){
+      if(k === "class") e.className = attrs[k];
+      else if(k === "html") e.innerHTML = attrs[k];
+      else if(k.indexOf("on") === 0) e.addEventListener(k.slice(2), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    });
+    (children||[]).forEach(function(c){ if(c) e.appendChild(c); });
+    return e;
+  }
+  function text(t){ return document.createTextNode(t); }
+  function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function timeAgo(iso){
+    if(!iso) return "";
+    var d = new Date(iso);
+    var mins = Math.floor((Date.now() - d.getTime())/60000);
+    if(mins < 1) return "just now";
+    if(mins < 60) return mins + "m ago";
+    var hrs = Math.floor(mins/60);
+    if(hrs < 24) return hrs + "h ago";
+    var days = Math.floor(hrs/24);
+    if(days < 7) return days + "d ago";
+    return d.toLocaleDateString(undefined, {month:"short", day:"numeric"});
+  }
+  function nameFor(id){
+    if(!id) return "Someone";
+    if(state.myId && id === state.myId) return "You";
+    return state.names[id] || "Someone";
+  }
+  function rebuildNamesFromPosts(){
+    state.posts.forEach(function(p){
+      if(p.authorId && p.authorName) state.names[p.authorId] = p.authorName;
+      if(p.matchedWith && p.matchedWithName) state.names[p.matchedWith] = p.matchedWithName;
+    });
+  }
+  function saveLocalPref(k,v){ try{ localStorage.setItem("porchlight:"+k, v); }catch(e){} }
+  function loadLocalPref(k){ try{ return localStorage.getItem("porchlight:"+k); }catch(e){ return null; } }
+  function categoryMatches(postCategory, filterCategory){
+    if(filterCategory === "all") return true;
+    if(filterCategory === "Other") return postCategory === "Other" || (postCategory||"").indexOf("Other:") === 0;
+    return postCategory === filterCategory;
+  }
+  function initialsAvatarDataUri(name){
+    var initials = (name||"?").trim().split(/\s+/).map(function(w){return w[0]||"";}).slice(0,2).join("").toUpperCase() || "?";
+    var colors = ["#B77A22","#35594C","#6B5B95","#B15A3D","#9C5B4A","#5C7A8A"];
+    var hash = 0;
+    for(var i=0;i<(name||"").length;i++){ hash = (hash*31 + name.charCodeAt(i)) >>> 0; }
+    var color = colors[hash % colors.length];
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="68" height="68"><circle cx="34" cy="34" r="34" fill="'+color+'"/><text x="34" y="35" dy=".35em" text-anchor="middle" font-family="Libre Franklin, sans-serif" font-size="24" fill="#F5F3E8">'+initials+'</text></svg>';
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+  }
+
+  // ---------- API ----------
+  function jsonFetch(url, opts){
+    opts = opts || {};
+    opts.credentials = "same-origin";
+    opts.headers = Object.assign({"Content-Type":"application/json"}, opts.headers||{});
+    return fetch(url, opts).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(body){
+        return { ok: r.ok, status: r.status, body: body };
+      });
+    });
+  }
+
+  // ---------- auth overlay ----------
+  function showAuthOverlay(){
+    var overlay = el("div", {class:"overlay", id:"authOverlay"});
+    var box = el("div", {class:"overlay-box"});
+    var tabs = el("div", {class:"auth-tabs"});
+    var loginTab = el("button", {class:"auth-tab", type:"button"}, [text("Log in")]);
+    var signupTab = el("button", {class:"auth-tab active", type:"button"}, [text("Sign up")]);
+    tabs.appendChild(signupTab); tabs.appendChild(loginTab);
+    box.appendChild(el("h3", {}, [text("Welcome to Porchlight")]));
+    box.appendChild(tabs);
+    var formHost = el("div", {id:"authFormHost"});
+    box.appendChild(formHost);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    function showSignup(){
+      signupTab.classList.add("active"); loginTab.classList.remove("active");
+      renderSignupForm(formHost, overlay);
+    }
+    function showLogin(){
+      loginTab.classList.add("active"); signupTab.classList.remove("active");
+      renderLoginForm(formHost, overlay);
+    }
+    signupTab.addEventListener("click", showSignup);
+    loginTab.addEventListener("click", showLogin);
+    showSignup();
+  }
+
+  function renderSignupForm(host, overlay){
+    host.innerHTML = "";
+    host.appendChild(el("p", {class:"overlay-copy"}, [text("Real email, verified with a code — no passwords shared, no strangers posing as someone else.")]));
+    var errBox = el("div", {class:"form-error", style:"display:none;"});
+    host.appendChild(errBox);
+    var nameInput = el("input", {type:"text", placeholder:"Your name", maxlength:"40"});
+    var emailInput = el("input", {type:"email", placeholder:"you@example.com"});
+    var passInput = el("input", {type:"password", placeholder:"Password (min. 8 characters)"});
+    var inviteInput = el("input", {type:"text", placeholder:"Invite code (if your group uses one)"});
+    [nameInput, emailInput, passInput, inviteInput].forEach(function(i){ i.style.marginBottom = "12px"; i.style.width="100%"; i.style.border="1px solid var(--line)"; i.style.background="var(--bg)"; i.style.borderRadius="3px"; i.style.padding="10px 11px"; i.style.fontSize="15px"; });
+    var btn = el("button", {class:"btn btn-need", style:"width:100%;justify-content:center;"}, [text("Create account")]);
+    function submit(){
+      errBox.style.display = "none";
+      var name = nameInput.value.trim(), email = emailInput.value.trim(), password = passInput.value;
+      if(!name || !email || !password){ errBox.textContent = "Fill in your name, email, and a password."; errBox.style.display=""; return; }
+      btn.disabled = true;
+      jsonFetch("/api/auth/signup", { method:"POST", body: JSON.stringify({name:name, email:email, password:password, inviteCode: inviteInput.value.trim()}) })
+        .then(function(res){
+          btn.disabled = false;
+          if(!res.ok){
+            errBox.textContent = signupErrorMessage(res.body.error);
+            errBox.style.display = "";
+            return;
+          }
+          renderVerifyForm(host, overlay, email);
+        });
+    }
+    btn.addEventListener("click", submit);
+    [nameInput, emailInput, passInput, inviteInput].forEach(function(i){ i.addEventListener("keydown", function(e){ if(e.key==="Enter") submit(); }); });
+    host.appendChild(nameInput); host.appendChild(emailInput); host.appendChild(passInput); host.appendChild(inviteInput); host.appendChild(btn);
+    setTimeout(function(){ nameInput.focus(); }, 50);
+  }
+
+  function signupErrorMessage(code){
+    if(code === "email_in_use") return "That email already has an account — try logging in instead.";
+    if(code === "invalid_email") return "That doesn't look like a valid email address.";
+    if(code === "weak_password") return "Use a password with at least 8 characters.";
+    if(code === "invalid_invite_code") return "That invite code isn't right — check with whoever shared it.";
+    if(code === "rate_limited") return "Too many attempts — wait a few minutes and try again.";
+    return "Something went wrong — check the server terminal for details.";
+  }
+
+  function renderVerifyForm(host, overlay, email){
+    host.innerHTML = "";
+    host.appendChild(el("p", {class:"overlay-copy"}, [text("We sent a 6-digit code to " + email + ". If you haven't set up email sending yet, check the server's terminal window — the code is printed there.")]));
+    var errBox = el("div", {class:"form-error", style:"display:none;"});
+    host.appendChild(errBox);
+    var codeInput = el("input", {type:"text", placeholder:"6-digit code", maxlength:"6", style:"width:100%;border:1px solid var(--line);background:var(--bg);border-radius:3px;padding:10px 11px;font-size:18px;letter-spacing:4px;text-align:center;margin-bottom:12px;"});
+    var btn = el("button", {class:"btn btn-need", style:"width:100%;justify-content:center;"}, [text("Verify")]);
+    var resend = el("button", {class:"link-btn quiet", style:"display:block;margin:10px auto 0;"}, [text("Resend code")]);
+    function submit(){
+      errBox.style.display = "none";
+      var code = codeInput.value.trim();
+      if(!code){ codeInput.focus(); return; }
+      btn.disabled = true;
+      jsonFetch("/api/auth/verify", { method:"POST", body: JSON.stringify({email:email, code:code}) })
+        .then(function(res){
+          btn.disabled = false;
+          if(!res.ok){
+            errBox.textContent = res.body.error === "invalid_or_expired" ? "That code is wrong or has expired — try resending." : "Something went wrong.";
+            errBox.style.display = "";
+            return;
+          }
+          document.body.removeChild(overlay);
+          onAuthed(res.body.user);
+        });
+    }
+    btn.addEventListener("click", submit);
+    codeInput.addEventListener("keydown", function(e){ if(e.key==="Enter") submit(); });
+    resend.addEventListener("click", function(){
+      resend.disabled = true; resend.textContent = "Sending…";
+      jsonFetch("/api/auth/resend-code", { method:"POST", body: JSON.stringify({email:email}) }).then(function(){
+        resend.textContent = "Code resent"; setTimeout(function(){ resend.disabled=false; resend.textContent="Resend code"; }, 4000);
+      });
+    });
+    host.appendChild(codeInput); host.appendChild(btn); host.appendChild(resend);
+    setTimeout(function(){ codeInput.focus(); }, 50);
+  }
+
+  function renderLoginForm(host, overlay){
+    host.innerHTML = "";
+    var errBox = el("div", {class:"form-error", style:"display:none;"});
+    host.appendChild(errBox);
+    var emailInput = el("input", {type:"email", placeholder:"you@example.com", style:"width:100%;border:1px solid var(--line);background:var(--bg);border-radius:3px;padding:10px 11px;font-size:15px;margin-bottom:12px;"});
+    var passInput = el("input", {type:"password", placeholder:"Password", style:"width:100%;border:1px solid var(--line);background:var(--bg);border-radius:3px;padding:10px 11px;font-size:15px;margin-bottom:12px;"});
+    var btn = el("button", {class:"btn btn-need", style:"width:100%;justify-content:center;"}, [text("Log in")]);
+    function submit(){
+      errBox.style.display = "none";
+      var email = emailInput.value.trim(), password = passInput.value;
+      if(!email || !password){ errBox.textContent="Enter your email and password."; errBox.style.display=""; return; }
+      btn.disabled = true;
+      jsonFetch("/api/auth/login", { method:"POST", body: JSON.stringify({email:email, password:password}) })
+        .then(function(res){
+          btn.disabled = false;
+          if(!res.ok){
+            errBox.textContent = loginErrorMessage(res.body.error);
+            errBox.style.display = "";
+            return;
+          }
+          document.body.removeChild(overlay);
+          onAuthed(res.body.user);
+        });
+    }
+    btn.addEventListener("click", submit);
+    [emailInput, passInput].forEach(function(i){ i.addEventListener("keydown", function(e){ if(e.key==="Enter") submit(); }); });
+    host.appendChild(emailInput); host.appendChild(passInput); host.appendChild(btn);
+    setTimeout(function(){ emailInput.focus(); }, 50);
+  }
+  function loginErrorMessage(code){
+    if(code === "invalid_credentials") return "That email and password don't match.";
+    if(code === "not_verified") return "Verify your email first — check your inbox (or the server terminal) for the code.";
+    if(code === "banned") return "This account has been banned.";
+    if(code === "rate_limited") return "Too many attempts — wait a few minutes and try again.";
+    return "Something went wrong.";
+  }
+
+  function onAuthed(user){
+    state.myId = user.id; state.myName = user.name; state.myEmail = user.email; state.isAdmin = !!user.isAdmin;
+    $("meBox").style.display = "flex";
+    $("appBody").style.display = "";
+    $("meAvatar").src = initialsAvatarDataUri(state.myName);
+    $("meAvatar").alt = state.myName + "\u2019s avatar";
+    if(state.isAdmin) $("adminLink").style.display = "";
+    loadBlockedIds().then(function(){
+      return fetch("/api/posts", {credentials:"same-origin"}).then(function(r){ return r.json(); });
+    }).then(function(initial){
+      state.posts = initial; rebuildNamesFromPosts(); renderAll();
+    }).catch(function(e){ console.error("initial load failed", e); });
+    connectWebSocket();
+  }
+
+  function loadBlockedIds(){
+    return jsonFetch("/api/users/me/blocked").then(function(res){
+      state.blockedIds = (res.body && res.body.blockedUserIds) || [];
+    });
+  }
+
+  // ---------- realtime ----------
+  var ws;
+  function connectWebSocket(){
+    var proto = location.protocol === "https:" ? "wss" : "ws";
+    ws = new WebSocket(proto + "://" + location.host);
+    ws.addEventListener("message", function(evt){
+      try{
+        var payload = JSON.parse(evt.data);
+        if(payload.type === "posts"){ state.posts = payload.posts; rebuildNamesFromPosts(); renderAll(); }
+      }catch(e){}
+    });
+    ws.addEventListener("close", function(){ setTimeout(connectWebSocket, 2000); });
+    ws.addEventListener("error", function(){ try{ ws.close(); }catch(e){} });
+  }
+
+  // ---------- posts API ----------
+  function apiAddPost(payload){ return jsonFetch("/api/posts", {method:"POST", body: JSON.stringify(payload)}); }
+  function apiClaim(id){ return jsonFetch("/api/posts/"+id+"/claim", {method:"POST", body:"{}"}); }
+  function apiUpdate(id, patch){ return jsonFetch("/api/posts/"+id, {method:"PATCH", body: JSON.stringify(patch)}); }
+  function apiBlock(id){ return jsonFetch("/api/users/"+id+"/block", {method:"POST", body:"{}"}); }
+  function apiUnblock(id){ return jsonFetch("/api/users/"+id+"/unblock", {method:"POST", body:"{}"}); }
+  function apiReport(reportedUserId, postId, reason){ return jsonFetch("/api/reports", {method:"POST", body: JSON.stringify({reportedUserId:reportedUserId, postId:postId, reason:reason})}); }
+
+  // ---------- report modal ----------
+  function showReportModal(reportedUserId, reportedName, postId){
+    var overlay = el("div", {class:"overlay"});
+    var box = el("div", {class:"overlay-box"});
+    box.appendChild(el("h3", {}, [text("Report " + reportedName)]));
+    box.appendChild(el("p", {class:"overlay-copy"}, [text("This goes straight to the admin for this board. They can review it and, if needed, remove this person's access.")]));
+    var reasonInput = el("textarea", {placeholder:"What happened?", style:"width:100%;min-height:80px;border:1px solid var(--line);background:var(--bg);border-radius:3px;padding:10px 11px;font-size:14px;margin-bottom:12px;"});
+    var submitBtn = el("button", {class:"btn btn-need"}, [text("Send report")]);
+    var cancelBtn = el("button", {class:"btn btn-ghost"}, [text("Cancel")]);
+    submitBtn.addEventListener("click", function(){
+      var reason = reasonInput.value.trim();
+      if(!reason){ reasonInput.focus(); return; }
+      submitBtn.disabled = true;
+      apiReport(reportedUserId, postId, reason).then(function(res){
+        document.body.removeChild(overlay);
+      });
+    });
+    cancelBtn.addEventListener("click", function(){ document.body.removeChild(overlay); });
+    var actions = el("div", {class:"panel-actions"}); actions.appendChild(submitBtn); actions.appendChild(cancelBtn);
+    box.appendChild(reasonInput); box.appendChild(actions);
+    overlay.appendChild(box); document.body.appendChild(overlay);
+    setTimeout(function(){ reasonInput.focus(); }, 50);
+  }
+
+  // ---------- UI wiring ----------
+  function populateCategorySelect(){
+    var sel = $("categorySelect");
+    CATEGORIES.forEach(function(c){ var opt=document.createElement("option"); opt.value=c; opt.textContent=c; sel.appendChild(opt); });
+    var savedCat = loadLocalPref("cat");
+    if(savedCat){ state.filterCategory = savedCat; sel.value = savedCat; }
+    sel.addEventListener("change", function(){ state.filterCategory = sel.value; saveLocalPref("cat", sel.value); renderAll(); });
+  }
+  function wireFilterPills(){
+    var savedType = loadLocalPref("type");
+    if(savedType) state.filterType = savedType;
+    var row = $("filterRow");
+    var pills = row.querySelectorAll(".pill");
+    pills.forEach(function(p){
+      if(p.dataset.filterType === state.filterType) p.classList.add("active"); else p.classList.remove("active");
+      p.addEventListener("click", function(){
+        state.filterType = p.dataset.filterType;
+        saveLocalPref("type", state.filterType);
+        pills.forEach(function(x){ x.classList.toggle("active", x === p); });
+        renderAll();
+      });
+    });
+  }
+
+  function computeStats(){
+    var earned = 0, spent = 0, communityHours = 0, openCount = 0;
+    state.posts.forEach(function(p){
+      if(p.status === "open") openCount++;
+      if(p.status === "completed" && typeof p.hours === "number"){
+        communityHours += p.hours;
+        var helperId = p.type === "need" ? p.matchedWith : p.authorId;
+        var recipientId = p.type === "need" ? p.authorId : p.matchedWith;
+        if(state.myId && helperId === state.myId) earned += p.hours;
+        if(state.myId && recipientId === state.myId) spent += p.hours;
+      }
+    });
+    return { balance: earned - spent, communityHours: communityHours, openCount: openCount };
+  }
+  function renderStats(){
+    var s = computeStats();
+    $("balanceNum").textContent = (s.balance >= 0 ? "" : "\u2212") + Math.abs(s.balance).toFixed(s.balance % 1 === 0 ? 0 : 1);
+    var row = $("statsRow"); row.innerHTML = "";
+    row.appendChild(el("div", {class:"stat"}, [el("b", {}, [text(s.openCount)]), el("span", {}, [text("open right now")])]));
+    row.appendChild(el("div", {class:"stat"}, [el("b", {}, [text(s.communityHours.toFixed(s.communityHours % 1 === 0 ? 0 : 1))]), el("span", {}, [text("hours exchanged so far")])]));
+    row.appendChild(el("div", {class:"stat"}, [el("b", {}, [text(state.posts.filter(function(p){return p.status==="matched";}).length)]), el("span", {}, [text("in progress")])]));
+  }
+
+  function renderMySummary(){
+    var box = $("mySummary");
+    if(!state.myId){ box.style.display = "none"; return; }
+    var mine = state.posts.filter(function(p){ return p.authorId === state.myId || p.matchedWith === state.myId; });
+    var openMine = mine.filter(function(p){ return p.status === "open"; }).length;
+    var inProgress = mine.filter(function(p){ return p.status === "matched"; }).length;
+    var done = mine.filter(function(p){ return p.status === "completed"; }).length;
+    if(mine.length === 0){ box.style.display = "none"; return; }
+    box.style.display = "flex"; box.innerHTML = "";
+    var summaryText = el("span", {}, [text("You have "), el("strong",{},[text(openMine)]), text(" open, "), el("strong",{},[text(inProgress)]), text(" in progress, "), el("strong",{},[text(done)]), text(" completed.")]);
+    var jumpBtn = el("button", {class:"link-btn"}, [text("View my posts")]);
+    jumpBtn.addEventListener("click", function(){
+      state.filterType = "mine"; saveLocalPref("type", "mine");
+      $("filterRow").querySelectorAll(".pill").forEach(function(x){ x.classList.toggle("active", x.dataset.filterType === "mine"); });
+      renderAll();
+      document.getElementById("openList").scrollIntoView({behavior:"smooth", block:"start"});
+    });
+    box.appendChild(summaryText); box.appendChild(jumpBtn);
+  }
+
+  function renderFormPanel(){
+    var host = $("formPanelHost"); host.innerHTML = "";
+    if(!state.formOpenType) return;
+    var isNeed = state.formOpenType === "need";
+    var panel = el("div", {class:"panel"});
+    panel.appendChild(el("h3", {}, [text(isNeed ? "Post a need" : "Post an offer")]));
+    var titleField = el("div", {class:"field"}, [el("label",{},[text(isNeed?"What do you need?":"What can you offer?")]), el("input",{type:"text", id:"formTitle", maxlength:"90", placeholder: isNeed ? "e.g. A ride to the pharmacy" : "e.g. Help setting up a new phone"})]);
+    var descField = el("div", {class:"field"}, [el("label",{},[text("A bit more detail")]), el("textarea",{id:"formDesc", maxlength:"400", placeholder:"Anything helpful for whoever responds"})]);
+    var catField = el("div", {class:"field"}, [el("label",{},[text("Category")])]);
+    var catSel = el("select", {id:"formCategory"});
+    CATEGORIES.forEach(function(c){ var o=document.createElement("option"); o.value=c; o.textContent=c; catSel.appendChild(o); });
+    catField.appendChild(catSel);
+    var otherField = el("div", {class:"field", id:"formOtherField", style:"display:none;"}, [el("label",{},[text("What kind of help? (since you picked \"Other\")")]), el("input",{type:"text", id:"formCategoryOther", maxlength:"40", placeholder:"e.g. Help moving furniture"})]);
+    catSel.addEventListener("change", function(){ $("formOtherField").style.display = catSel.value === "Other" ? "" : "none"; });
+    var timingField = el("div", {class:"field"}, [el("label",{},[text("Timing")]), el("input",{type:"text", id:"formTiming", maxlength:"60", placeholder:"e.g. This week, or Tuesday afternoon"})]);
+    panel.appendChild(titleField); panel.appendChild(descField); panel.appendChild(catField); panel.appendChild(otherField); panel.appendChild(timingField);
+    var actions = el("div", {class:"panel-actions"});
+    var submitBtn = el("button", {class: "btn " + (isNeed ? "btn-need" : "btn-offer")}, [text(isNeed ? "Post need" : "Post offer")]);
+    submitBtn.addEventListener("click", function(){
+      var title = $("formTitle").value.trim();
+      if(!title){ $("formTitle").focus(); return; }
+      submitBtn.disabled = true;
+      var category = catSel.value;
+      if(category === "Other"){ var ct = $("formCategoryOther").value.trim(); if(ct) category = "Other: " + ct; }
+      apiAddPost({ type: state.formOpenType, category: category, title: title, description: $("formDesc").value.trim(), timing: $("formTiming").value.trim() })
+        .then(function(res){
+          if(!res.ok){ alert("Couldn't post that — try again."); submitBtn.disabled = false; return; }
+          state.formOpenType = null; renderFormPanel();
+        });
+    });
+    var cancelBtn = el("button", {class:"btn btn-ghost"}, [text("Cancel")]);
+    cancelBtn.addEventListener("click", function(){ state.formOpenType = null; renderFormPanel(); });
+    actions.appendChild(submitBtn); actions.appendChild(cancelBtn);
+    panel.appendChild(actions); host.appendChild(panel); $("formTitle").focus();
+  }
+
+  function makeRow(p, opts){
+    opts = opts || {};
+    var row = el("div", {class: "row " + p.type + (p.status === "cancelled" ? " cancelled" : "")});
+    var main = el("div", {class:"row-main"});
+    var top = el("div", {class:"row-top"}, [
+      el("span", {class:"type-label " + p.type}, [text(p.type === "need" ? "Need" : "Offer")]),
+      el("span", {class:"cat-label"}, [text(p.category || "Other")])
+    ]);
+    if(opts.roleTag){ top.appendChild(el("span", {class:"role-tag"}, [text(opts.roleTag)])); }
+    main.appendChild(top);
+    main.appendChild(el("div", {class:"row-title"}, [text(p.title || "")]));
+    if(p.description){ main.appendChild(el("div", {class:"row-desc"}, [text(p.description)])); }
+
+    var meta = el("div", {class:"row-meta"});
+    var dotClass = p.status === "open" ? "open" : (p.status === "matched" ? "matched" : "completed");
+    var statusText = "";
+    if(p.status === "open") statusText = "Open";
+    else if(p.status === "matched"){
+      if(p.authorId === state.myId || p.matchedWith === state.myId){
+        var otherId = p.authorId === state.myId ? p.matchedWith : p.authorId;
+        statusText = "Matched with " + nameFor(otherId);
+      } else { statusText = "In progress"; }
+    } else if(p.status === "completed"){ statusText = "Completed" + (typeof p.hours === "number" ? " · " + p.hours + " hr" + (p.hours===1?"":"s") : ""); }
+    else if(p.status === "cancelled"){ statusText = "Cancelled"; }
+    meta.appendChild(el("span", {}, [el("span",{class:"dot "+dotClass}), text(statusText)]));
+    meta.appendChild(el("span", {}, [text("Posted by " + nameFor(p.authorId) + " · " + timeAgo(p.createdAt))]));
+    if(p.timing){ meta.appendChild(el("span", {}, [text(p.timing)])); }
+    main.appendChild(meta);
+
+    if(p.status === "matched" && p.scheduleNote){ main.appendChild(el("div", {class:"row-meta", style:"margin-top:4px;"}, [text("Plan: " + p.scheduleNote)])); }
+
+    var isParticipant = state.myId && (p.authorId === state.myId || p.matchedWith === state.myId);
+    if(p.status === "matched" && isParticipant){
+      if(!p.scheduleNote){
+        var schedForm = el("div", {class:"inline-form"});
+        var schedInput = el("input", {type:"text", placeholder:"Add a plan, e.g. Tue 2pm"});
+        var schedBtn = el("button", {class:"btn btn-ghost btn-small"}, [text("Save")]);
+        schedBtn.addEventListener("click", function(){
+          var v = schedInput.value.trim(); if(!v) return;
+          schedBtn.disabled = true;
+          apiUpdate(p.id, { scheduleNote: v }).then(function(res){ if(!res.ok) schedBtn.disabled = false; });
+        });
+        schedForm.appendChild(schedInput); schedForm.appendChild(schedBtn); main.appendChild(schedForm);
+      }
+      var completeForm = el("div", {class:"inline-form"});
+      var hoursInput = el("input", {type:"number", step:"0.5", min:"0.25", max:"24", value:"1", "aria-label":"Hours"});
+      var completeBtn = el("button", {class:"btn btn-ghost btn-small"}, [text("Mark complete & log hours")]);
+      completeBtn.addEventListener("click", function(){
+        var hrs = parseFloat(hoursInput.value);
+        if(!hrs || hrs <= 0) { hoursInput.focus(); return; }
+        completeBtn.disabled = true;
+        apiUpdate(p.id, { status:"completed", hours: hrs, completedAt: new Date().toISOString() }).then(function(res){ if(!res.ok) completeBtn.disabled = false; });
+      });
+      completeForm.appendChild(hoursInput); completeForm.appendChild(completeBtn); main.appendChild(completeForm);
+    }
+
+    // block / report controls for the other party on this post
+    var otherPartyId = p.authorId === state.myId ? p.matchedWith : (p.matchedWith === state.myId ? p.authorId : (p.authorId !== state.myId ? p.authorId : null));
+    if(otherPartyId && otherPartyId !== state.myId && (p.status !== "cancelled")){
+      var safetyRow = el("div", {class:"row-safety"});
+      var reportBtn = el("button", {class:"link-btn quiet"}, [text("Report")]);
+      reportBtn.addEventListener("click", function(){ showReportModal(otherPartyId, nameFor(otherPartyId), p.id); });
+      safetyRow.appendChild(reportBtn);
+      if(state.blockedIds.indexOf(otherPartyId) === -1){
+        var blockBtn = el("button", {class:"link-btn quiet"}, [text("Block " + nameFor(otherPartyId))]);
+        blockBtn.addEventListener("click", function(){
+          apiBlock(otherPartyId).then(function(){ state.blockedIds.push(otherPartyId); renderAll(); });
+        });
+        safetyRow.appendChild(blockBtn);
+      }
+      main.appendChild(safetyRow);
+    }
+
+    row.appendChild(main);
+
+    var actions = el("div", {class:"row-actions"});
+    if(p.status === "open" && state.myId){
+      if(p.authorId === state.myId){
+        var cancelLink = el("button", {class:"link-btn danger"}, [text("Cancel")]);
+        cancelLink.addEventListener("click", function(){ apiUpdate(p.id, {status:"cancelled"}); });
+        actions.appendChild(cancelLink);
+      } else {
+        var respondBtn = el("button", {class:"btn btn-small " + (p.type === "need" ? "btn-need" : "btn-offer")}, [text(p.type === "need" ? "I can help" : "I'd like this")]);
+        respondBtn.addEventListener("click", function(){
+          respondBtn.disabled = true;
+          apiClaim(p.id).then(function(res){
+            if(res.status === 409){ respondBtn.textContent = "Already taken"; return; }
+            if(!res.ok){ respondBtn.disabled = false; }
+          });
+        });
+        actions.appendChild(respondBtn);
+      }
+    }
+    row.appendChild(actions);
+    return row;
+  }
+
+  function passesFilter(p){
+    if(!categoryMatches(p.category, state.filterCategory)) return false;
+    if(state.filterType === "need" && p.type !== "need") return false;
+    if(state.filterType === "offer" && p.type !== "offer") return false;
+    if(state.filterType === "mine"){
+      if(!state.myId) return false;
+      if(p.authorId !== state.myId && p.matchedWith !== state.myId) return false;
+    }
+    return true;
+  }
+  function isFromBlocked(p){
+    return state.blockedIds.indexOf(p.authorId) !== -1;
+  }
+
+  function renderLists(){
+    var mineMode = state.filterType === "mine";
+    $("openHeading").textContent = mineMode ? "Your open posts" : "Open now";
+    $("progressHeading").textContent = mineMode ? "Your matches in progress" : "In progress";
+    $("historySection").style.display = mineMode ? "" : "none";
+    $("activitySection").style.display = mineMode ? "none" : "";
+
+    var open = [], progress = [], completedCommunity = [], myHistory = [];
+
+    state.posts.forEach(function(p){
+      var isMine = state.myId && (p.authorId === state.myId || p.matchedWith === state.myId);
+      if(mineMode){
+        if(!isMine || !categoryMatches(p.category, state.filterCategory)) return;
+        if(p.status === "open") open.push(p);
+        else if(p.status === "matched") progress.push(p);
+        else if(p.status === "completed" || p.status === "cancelled") myHistory.push(p);
+      } else {
+        if(p.status === "open" && isFromBlocked(p)) return; // hide open posts from people you've blocked
+        if(!passesFilter(p)) return;
+        if(p.status === "open") open.push(p);
+        else if(p.status === "matched") progress.push(p);
+        else if(p.status === "completed") completedCommunity.push(p);
+      }
+    });
+
+    function roleTagFor(p){
+      if(!state.myId) return null;
+      if(p.authorId === state.myId) return p.type === "need" ? "You posted this need" : "You posted this offer";
+      if(p.matchedWith === state.myId) return "You responded";
+      return null;
+    }
+
+    var openList = $("openList"); openList.innerHTML = "";
+    if(open.length === 0){ openList.appendChild(el("div", {class:"section-empty"}, [text(mineMode ? "You don't have any open posts." : "Nothing open right now — be the first to post a need or an offer.")])); }
+    else { open.forEach(function(p){ openList.appendChild(makeRow(p, {roleTag: mineMode ? roleTagFor(p) : null})); }); }
+
+    var progressSection = $("progressSection"), progressList = $("progressList"); progressList.innerHTML = "";
+    if(progress.length === 0){ progressSection.style.display = mineMode ? "" : "none"; if(mineMode) progressList.appendChild(el("div",{class:"section-empty"},[text("Nothing in progress right now.")])); }
+    else { progressSection.style.display = ""; progress.forEach(function(p){ progressList.appendChild(makeRow(p, {roleTag: mineMode ? roleTagFor(p) : null})); }); }
+
+    var activityList = $("activityList"); activityList.innerHTML = "";
+    var recentCompleted = completedCommunity.slice().sort(function(a,b){ return (b.completedAt||"").localeCompare(a.completedAt||""); }).slice(0, 12);
+    if(!mineMode){
+      if(recentCompleted.length === 0){ $("activitySection").style.display = "none"; }
+      else {
+        recentCompleted.forEach(function(p){
+          var helperId = p.type === "need" ? p.matchedWith : p.authorId;
+          var recipientId = p.type === "need" ? p.authorId : p.matchedWith;
+          var item = el("div", {class:"activity-item"});
+          item.innerHTML = "<b>" + escapeHtml(nameFor(helperId)) + "</b> helped <b>" + escapeHtml(nameFor(recipientId)) + "</b> · " + escapeHtml(p.category || "") + " · " + p.hours + " hr" + (p.hours===1?"":"s") + " · " + escapeHtml(timeAgo(p.completedAt));
+          activityList.appendChild(item);
+        });
+      }
+    }
+
+    var historyList = $("historyList"); historyList.innerHTML = "";
+    if(mineMode){
+      var sortedHistory = myHistory.slice().sort(function(a,b){ var at=a.completedAt||a.createdAt||"", bt=b.completedAt||b.createdAt||""; return bt.localeCompare(at); });
+      var completedCount = sortedHistory.filter(function(p){ return p.status === "completed"; }).length;
+      $("historySub").textContent = sortedHistory.length ? (completedCount + " completed, " + (sortedHistory.length - completedCount) + " cancelled") : "";
+      if(sortedHistory.length === 0){ historyList.appendChild(el("div", {class:"section-empty"}, [text("Nothing completed or cancelled yet.")])); }
+      else { sortedHistory.forEach(function(p){ historyList.appendChild(makeRow(p, {roleTag: roleTagFor(p)})); }); }
+    }
+
+    var blockedSection = $("blockedSection"), blockedList = $("blockedList"); blockedList.innerHTML = "";
+    if(mineMode && state.blockedIds.length){
+      blockedSection.style.display = "";
+      state.blockedIds.forEach(function(id){
+        var item = el("div", {class:"row", style:"border-left-color:var(--line);"});
+        var m = el("div", {class:"row-main"}, [el("div", {class:"row-title"}, [text(nameFor(id))])]);
+        var unblockBtn = el("button", {class:"link-btn"}, [text("Unblock")]);
+        unblockBtn.addEventListener("click", function(){
+          apiUnblock(id).then(function(){ state.blockedIds = state.blockedIds.filter(function(x){return x!==id;}); renderAll(); });
+        });
+        item.appendChild(m);
+        var actWrap = el("div", {class:"row-actions"}, [unblockBtn]);
+        item.appendChild(actWrap);
+        blockedList.appendChild(item);
+      });
+    } else {
+      blockedSection.style.display = "none";
+    }
+  }
+
+  function renderAll(){ renderStats(); renderMySummary(); renderLists(); }
+
+  function wireTopLevel(){
+    $("openNeedForm").addEventListener("click", function(){ state.formOpenType = "need"; renderFormPanel(); });
+    $("openOfferForm").addEventListener("click", function(){ state.formOpenType = "offer"; renderFormPanel(); });
+    $("howBtn").addEventListener("click", function(){
+      var open = $("howBody").classList.toggle("open");
+      $("howBtn").setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    $("logoutBtn").addEventListener("click", function(){
+      jsonFetch("/api/auth/logout", {method:"POST", body:"{}"}).then(function(){ location.reload(); });
+    });
+  }
+
+  async function init(){
+    populateCategorySelect(); wireFilterPills(); wireTopLevel();
+    var me = await jsonFetch("/api/auth/me");
+    if(me.ok){ onAuthed(me.body.user); } else { showAuthOverlay(); }
+  }
+
+  if(document.readyState === "loading"){ document.addEventListener("DOMContentLoaded", init); } else { init(); }
+})();
+</script>
+</body>
+</html>
